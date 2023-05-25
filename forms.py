@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, IntegerField, FloatField
-from wtforms.validators import DataRequired, NumberRange
+from wtforms import StringField, SubmitField, IntegerField, FloatField, PasswordField
+from wtforms.validators import DataRequired, NumberRange, EqualTo
 
 
 # Form fields for update reviews and rating
@@ -21,13 +21,20 @@ class AddMovieForm(FlaskForm):
 class RegisterForm(FlaskForm):
     name = StringField("Name", validators=[DataRequired()])
     username = StringField("Username", validators=[DataRequired()])
-    password = StringField("Password", validators=[DataRequired()])
+    password = PasswordField("Password", validators=[DataRequired()])
     submit = SubmitField('Register')
 
 
 # Form fields for login
 class LoginForm(FlaskForm):
     username = StringField("Username", validators=[DataRequired()])
-    password = StringField("Password", validators=[DataRequired()])
+    password = PasswordField("Password", validators=[DataRequired()])
     submit = SubmitField('Login')
+
+
+class ResetForm(FlaskForm):
+    username = StringField("Username", validators=[DataRequired()])
+    new_password = PasswordField("New Password", validators=[DataRequired()])
+    confirm_password = PasswordField("Confirm Password", validators=[DataRequired(), EqualTo('new_password')])
+    submit = SubmitField('Reset')
 

@@ -4,7 +4,7 @@ from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy.orm import relationship, sessionmaker
 from flask_login import UserMixin, login_user, LoginManager, login_required, current_user, logout_user
-from forms import LoginForm, UpdateForm, RegisterForm, AddMovieForm
+from forms import LoginForm, UpdateForm, RegisterForm, AddMovieForm, ResetForm
 import requests
 
 
@@ -148,6 +148,32 @@ def login():
 def logout():
     logout_user()
     return redirect(url_for('login'))
+
+
+@app.route('/reset_password', methods=["GET", "POST"])
+def reset():
+    # this function will allow user to reset password
+    reset_form = ResetForm()
+
+    if request.method == "POST":
+
+        if reset_form.validate_on_submit():
+            username = reset_form.username.data
+            new_password = reset_form.new_password.data
+
+            user = User.query.filter_by(username=username).first()
+
+            if not user:
+                flash("This email does not exist, please try again")
+                return redirect(url_for('login'))
+
+            else:
+                hashed_password = generate_password_hash(password=new_password, salt_length=8)
+                user.password = hashed_password
+                db.session.commit()
+                return redirect(url_for('home'))
+
+    return render_template("password_reset.html", form=reset_form)
 
 
 @app.route("/find")
