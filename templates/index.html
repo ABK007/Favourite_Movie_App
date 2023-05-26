@@ -15,14 +15,14 @@
 {% block content %}
 <div class="container">
   <h1 class="heading">My Top 10 Movies</h1>
-  <p class="description">Hello {{current_user.name}}, these are your all time favourite movies.</p>
+  <p class="description">Hello <b>{{current_user.name}}</b>, these are your all-time favourite movies.</p>
   <a href="{{ url_for('logout') }}">Logout</a>
 
   {% for movie in movies %}
    
   <div class="card" >
     <div class="front" style="background-image: url('{{movie.img_url}}')">
-        <p class="large">{{movie.ranking}}</p>
+        <p class="large">{{movie.rating}}</p>
     </div>
     <div class="back">
       <div>

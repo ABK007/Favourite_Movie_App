@@ -5,6 +5,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy.orm import relationship, sessionmaker
 from flask_login import UserMixin, login_user, LoginManager, login_required, current_user, logout_user
 from forms import LoginForm, UpdateForm, RegisterForm, AddMovieForm, ResetForm
+from sqlalchemy import desc
 import requests
 import configparser
 
@@ -60,7 +61,6 @@ class Movie(db.Model):
     year = db.Column(db.Integer, nullable=False)
     description = db.Column(db.String(500), nullable=False)
     rating = db.Column(db.Float, nullable=True)
-    ranking = db.Column(db.Integer, nullable=True)
     review = db.Column(db.String(250), nullable=True)
     img_url = db.Column(db.String(250), nullable=False)
 
@@ -77,13 +77,10 @@ with app.app_context():
 def home():
     # Authenticate user to show blogs otherwise redirect to login page
     if current_user.is_authenticated:
-        movies = Movie.query.filter_by(user_id=current_user.id).all()
-        for i in range(len(movies)):
-            movies[i].ranking = len(movies) - i
+        movies = Movie.query.filter_by(user_id=current_user.id).order_by(desc(Movie.rating)).all()
         db.session.commit()
     else:
         return redirect(url_for('login'))
-
     return render_template("index.html", movies=movies)
 
 
@@ -202,8 +199,7 @@ def find():
             year=data["release_date"].split("-")[0],
             img_url=f"{IMAGE_TMDB_URL}{data['poster_path']}",
             description=data["overview"],
-            rating=7.5,
-            ranking=10,
+            rating=0,
             review="Great",
             user_id=current_user.id
         )
