@@ -6,6 +6,7 @@ from sqlalchemy.orm import relationship, sessionmaker
 from flask_login import UserMixin, login_user, LoginManager, login_required, current_user, logout_user
 from forms import LoginForm, UpdateForm, RegisterForm, AddMovieForm, ResetForm
 import requests
+import configparser
 
 
 app = Flask(__name__)
@@ -17,6 +18,15 @@ app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///top_movies.db"
 # Optional: But it will silence the deprecation warning in the console.
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
+
+# configuring app for recaptcha
+config = configparser.ConfigParser()
+config.read('config.ini')
+
+public_key = config.get('recaptcha_Public_key', 'public_key')
+private_key = config.get('recaptcha_private_key', 'private_key')
+app.config['RECAPTCHA_PUBLIC_KEY'] = public_key
+app.config['RECAPTCHA_PRIVATE_KEY'] = private_key
 
 
 # Configuring for user login and logout
@@ -46,7 +56,7 @@ class User(UserMixin, db.Model):
 class Movie(db.Model):
     __tablename__ = "fav_movies"
     id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(250), unique=True, nullable=False)
+    title = db.Column(db.String(250), unique=False, nullable=False)
     year = db.Column(db.Integer, nullable=False)
     description = db.Column(db.String(500), nullable=False)
     rating = db.Column(db.Float, nullable=True)
@@ -61,9 +71,6 @@ class Movie(db.Model):
 
 with app.app_context():
     db.create_all()
-
-
-
 
 
 @app.route("/")
@@ -198,7 +205,7 @@ def find():
             rating=7.5,
             ranking=10,
             review="Great",
-            user_id = current_user.id
+            user_id=current_user.id
         )
         db.session.add(new_movie)
         db.session.commit()
