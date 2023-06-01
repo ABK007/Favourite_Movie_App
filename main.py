@@ -10,8 +10,12 @@ import requests
 import configparser
 
 
+configure_data = configparser.ConfigParser()
+configure_data.read('config.ini')
+app_secret_key = configure_data.get('app_secret_key', 'app_key')
+
 app = Flask(__name__)
-app.config['SECRET_KEY'] = '8BYkEfBA6O6donzWlSihBXox7C0sKR6b'
+app.config['SECRET_KEY'] = app_secret_key
 Bootstrap(app)
 
 # CREATE DATABASE
@@ -21,11 +25,9 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
 # configuring app for recaptcha
-config = configparser.ConfigParser()
-config.read('config.ini')
 
-public_key = config.get('recaptcha_Public_key', 'public_key')
-private_key = config.get('recaptcha_private_key', 'private_key')
+public_key = configure_data.get('recaptcha_Public_key', 'public_key')
+private_key = configure_data.get('recaptcha_private_key', 'private_key')
 app.config['RECAPTCHA_PUBLIC_KEY'] = public_key
 app.config['RECAPTCHA_PRIVATE_KEY'] = private_key
 
@@ -183,6 +185,7 @@ def reset():
 @app.route("/find")
 @login_required
 def find():
+    # finds movie from the TMDB api and add it in the database.
     movie_id = request.args.get('id')
     IMAGE_TMDB_URL = "https://image.tmdb.org/t/p/w500/"
 
@@ -213,11 +216,12 @@ def find():
 @login_required
 def add():
     # Adds new movie in the database and display
+    tmdb_key = configure_data.get('tmdb_api', 'tmdb_api_key')
     add_movie_form = AddMovieForm()
     if add_movie_form.validate_on_submit():
         movie_title = add_movie_form.title.data
         tmdb_endpoint = "https://api.themoviedb.org/3/search/movie"
-        params = {"api_key": "4bd1624a27cd5d13784e874c693281be",
+        params = {"api_key": tmdb_key,
                   "query": movie_title}
 
         response = requests.get(url=tmdb_endpoint, params=params)
@@ -231,6 +235,7 @@ def add():
 @app.route("/delete")
 @login_required
 def delete():
+    # delete movie from the database
     movie_id = request.args.get('id')
     movie_to_delete = Movie.query.get(movie_id)
     db.session.delete(movie_to_delete)
@@ -242,6 +247,7 @@ def delete():
 @app.route("/edit", methods=["GET", "POST"])
 @login_required
 def edit():
+    # edit the details of the movie suchas review and ratings
     form = UpdateForm()
     if form.validate_on_submit():
         movie_id = request.args.get('id')
@@ -255,4 +261,4 @@ def edit():
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run()

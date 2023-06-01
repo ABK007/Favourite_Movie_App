@@ -7,3 +7,5 @@ Requests==2.31.0
 SQLAlchemy==2.0.7
 Werkzeug==2.2.2
 WTForms==3.0.1
+FastAPI
+gunicorn
